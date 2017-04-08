@@ -40,16 +40,32 @@ public class Main {
         MethodMinEl(boxes, 4, 5, stock, req);
         PrintTable(boxes, 4, 5, req, stock, u, v);
         CheckCorrections(boxes, 4, 5);
-        while(!FindPotential(boxes, u, v, 4, 5)){
+        while (!FindPotential(boxes, u, v, 4, 5)) {
             CheckCorrections(boxes, 4, 5);
         }
         PrintTable(boxes, 4, 5, req, stock, u, v);
-        while(!CheckOpt(boxes, 4, 5)){
+        /*Recount(boxes, 4, 5);
+        PrintTable(boxes, 4, 5, req, stock, u, v);
+        while(!FindPotential(boxes, u, v, 4, 5)){
+            CheckCorrections(boxes, 4, 5);
+        }
+        PrintTable(boxes, 4, 5, req, stock, u, v);*/
+        while (!CheckOpt(boxes, 4, 5)) {
             Recount(boxes, 4, 5);
-            while(!FindPotential(boxes, u, v, 4, 5)){
+            while (!FindPotential(boxes, u, v, 4, 5)) {
                 CheckCorrections(boxes, 4, 5);
             }
+            Clean(boxes, 4, 5);
+            SetDelta(boxes, u, v);
             PrintTable(boxes, 4, 5, req, stock, u, v);
         }
+        double coast = 0;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (boxes[i][j].getState())
+                    coast += boxes[i][j].GetPrice() * boxes[i][j].getProduct();
+            }
+        }
+        System.out.println("Стоимость перевозки  = " + (int)coast);
     }
 }

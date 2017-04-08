@@ -41,6 +41,7 @@ public class Func {
             }
             return null;
         }
+
         public void print() {
             switch (this) {
                 case left:
@@ -62,6 +63,21 @@ public class Func {
     }
 
     public static int minCycleLenght = 100, cycleLenght = 0, firstStr = 0, firstClmn = 0;
+    public static boolean isFind = false;
+
+    public static void Clean(Box[][] boxes, int m, int n){
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                boxes[i][j].SetCntTimesInBox();
+                if(boxes[i][j].getProduct() > 0){
+                    boxes[i][j].SetTrue();
+                } else{
+                    boxes[i][j].SetFalse();
+                }
+            }
+        }
+    }
+
 
     public static void FreeCntTimesInBox(Box[][] boxes, int m, int n) {
         for (int i = 0; i < m; i++) {
@@ -92,16 +108,22 @@ public class Func {
         firstStr = numMinBoxStr;
         FindCycleLenght(boxes, numMinBoxStr, numMinBoxClmn, null);
         Coordinates[] cycle = new Coordinates[minCycleLenght];
+        for (int i = 0; i < minCycleLenght; i++) {
+            cycle[i] = new Coordinates(0, 0);
+        }
         cycleLenght = 0;
+        isFind = false;
         CreateCycle(boxes, numMinBoxStr, numMinBoxClmn, null, cycle);
         FillTable(boxes, cycle);
     }
 
     public static void FillTable(Box[][] boxes, Coordinates[] cycle) {
-        Box box = box = boxes[cycle[0].GetY()][cycle[0].GetX()];
+        Box box = boxes[cycle[0].GetY()][cycle[0].GetX()];
         double delta = 100;
         int sign = 1;
         box.setSign(sign);
+        box.SetTrue();
+        sign = 0;
         for (int i = 1; i < minCycleLenght; i++) {
             box = boxes[cycle[i].GetY()][cycle[i].GetX()];
             if (box.getState() && cycle[i].GetDir()) {
@@ -115,22 +137,22 @@ public class Func {
         }
         for (int i = 0; i < minCycleLenght; i++) {
             box = boxes[cycle[i].GetY()][cycle[i].GetX()];
-            if (box.GetSign() == 0 && delta < box.getProduct()) {
+            if (box.GetSign() == 0 && delta > box.getProduct()) {
                 delta = box.getProduct();
             }
         }
-        for (int i = 0; i < minCycleLenght; i++) {
+        for (int i = 1; i < minCycleLenght; i++) {
             box = boxes[cycle[i].GetY()][cycle[i].GetX()];
-            if (sign == 0) {
+            if (box.GetSign() == 0) {
                 box.setCntProduct(box.getProduct() - delta);
             }
-            if (sign == 1) {
+            if (box.GetSign() == 1) {
                 box.setCntProduct(box.getProduct() + delta);
             }
         }
         for (int i = 0; i < minCycleLenght; i++) {
             box = boxes[cycle[i].GetY()][cycle[i].GetX()];
-            if(box.getProduct() == 0)
+            if (box.getProduct() == 0)
                 box.SetFalse();
         }
     }
@@ -140,28 +162,28 @@ public class Func {
         cycle[cycleLenght - 1].SetX(n);
         cycle[cycleLenght - 1].SetY(m);
         int str = 0, clmn = 0;
-        if (direction == null) {
-            if (m - 1 >= 0) {
-                FindCycleLenght(boxes, m - 1, n, Direction.up);
+        if (direction == null && isFind == false) {
+            if (m - 1 >= 0  && isFind == false) {
+                CreateCycle(boxes, m - 1, n, Direction.up, cycle);
             }
-            if (m + 1 < 4) {
-                FindCycleLenght(boxes, m + 1, n, Direction.down);
+            if (m + 1 < 4  && isFind == false) {
+                CreateCycle(boxes, m + 1, n, Direction.down, cycle);
             }
-            if (n - 1 >= 0) {
-                FindCycleLenght(boxes, m, n - 1, Direction.left);
+            if (n - 1 >= 0  && isFind == false) {
+                CreateCycle(boxes, m, n - 1, Direction.left, cycle);
             }
-            if (n + 1 < 5) {
-                FindCycleLenght(boxes, m - 1, n, Direction.right);
+            if (n + 1 < 5  && isFind == false) {
+                CreateCycle(boxes, m, n + 1, Direction.right, cycle);
             }
         } else {
-            if (firstClmn == n && firstStr == m) {
+            if (firstClmn == n && firstStr == m && isFind == false) {
                 if (minCycleLenght == cycleLenght) {
-                    return;
+                    isFind = true;
                 }
-            } else {
+            } else if( isFind == false) {
                 if (cycleLenght < minCycleLenght) {
                     if (!boxes[m][n].getState()) {
-                        boxes[m][n].AddCntTimesInBoc();
+                        //boxes[m][n].AddCntTimesInBoc();
                         str = m;
                         clmn = n;
                         switch (direction) {
@@ -180,8 +202,8 @@ public class Func {
                             default:
                                 break;
                         }
-                        if (str < 4 && str >= 0 && clmn < 5 && clmn >= 0 && !(boxes[str][clmn].getState() && boxes[str][clmn].GetCntTimesInBox() > 0)) {
-                            FindCycleLenght(boxes, str, clmn, direction);
+                        if (str < 4 && str >= 0 && clmn < 5 && clmn >= 0 && !(boxes[str][clmn].getState() && boxes[str][clmn].GetCntTimesInBox() > 0) && isFind == false) {
+                            CreateCycle(boxes, str, clmn, direction, cycle);
                         }
                     } else {
                         str = m;
@@ -202,10 +224,12 @@ public class Func {
                             default:
                                 break;
                         }
-                        if (str < 4 && str >= 0 && clmn < 5 && clmn >= 0 && !(boxes[str][clmn].getState() && boxes[str][clmn].GetCntTimesInBox() > 0)) {
-                            if (cycle[cycleLenght].GetDir())
-                                cycle[cycleLenght].ChangeDircthn();
-                            FindCycleLenght(boxes, str, clmn, direction);
+                        if (str < 4 && str >= 0 && clmn < 5 && clmn >= 0 && !(boxes[str][clmn].getState() && boxes[str][clmn].GetCntTimesInBox() > 0) && isFind == false) {
+                            //if (cycle[cycleLenght].GetDir())
+                              //  cycle[cycleLenght].ChangeDircthn();
+                            boxes[m][n].AddCntTimesInBoc();
+                            CreateCycle(boxes, str, clmn, direction, cycle);
+                            boxes[m][n].MinCntTimesInBoc();
                         }
                         str = m;
                         clmn = n;
@@ -226,10 +250,12 @@ public class Func {
                                 break;
                         }
 
-                        if (str < 4 && str >= 0 && clmn < 5 && clmn >= 0 && !(boxes[str][clmn].getState() && boxes[str][clmn].GetCntTimesInBox() > 0)) {
-                            if (!cycle[cycleLenght].GetDir())
-                                cycle[cycleLenght].ChangeDircthn();
-                            FindCycleLenght(boxes, str, clmn, direction.min());
+                        if (str < 4 && str >= 0 && clmn < 5 && clmn >= 0 && !(boxes[str][clmn].getState() && boxes[str][clmn].GetCntTimesInBox() > 0) && isFind == false) {
+                            if (!cycle[cycleLenght - 1].GetDir())
+                                cycle[cycleLenght - 1].ChangeDircthn();
+                            boxes[m][n].AddCntTimesInBoc();
+                            CreateCycle(boxes, str, clmn, direction.min(), cycle);
+                            boxes[m][n].MinCntTimesInBoc();
                         }
                         str = m;
                         clmn = n;
@@ -249,11 +275,13 @@ public class Func {
                             default:
                                 break;
                         }
-                        if (str < 4 && str >= 0 && clmn < 5 && clmn >= 0 && !(boxes[str][clmn].getState() && boxes[str][clmn].GetCntTimesInBox() > 0)) {
+                        if (str < 4 && str >= 0 && clmn < 5 && clmn >= 0 && !(boxes[str][clmn].getState() && boxes[str][clmn].GetCntTimesInBox() > 0) && isFind == false) {
 
-                            if (!cycle[cycleLenght].GetDir())
-                                cycle[cycleLenght].ChangeDircthn();
-                            FindCycleLenght(boxes, str, clmn, direction.add());
+                            if (!cycle[cycleLenght - 1].GetDir())
+                                cycle[cycleLenght - 1].ChangeDircthn();
+                            boxes[m][n].AddCntTimesInBoc();
+                            CreateCycle(boxes, str, clmn, direction.add(), cycle);
+                            boxes[m][n].MinCntTimesInBoc();
                         }
                         boxes[m][n].MinCntTimesInBoc();
                     }
@@ -277,10 +305,10 @@ public class Func {
                 FindCycleLenght(boxes, m, n - 1, Direction.left);
             }
             if (n + 1 < 5) {
-                FindCycleLenght(boxes, m - 1, n, Direction.right);
+                FindCycleLenght(boxes, m, n + 1, Direction.right);
             }
         } else {
-            direction.print();
+            //direction.print();
             if (firstClmn == n && firstStr == m) {
                 minCycleLenght = cycleLenght;
             } else {
@@ -305,9 +333,9 @@ public class Func {
                                 break;
                         }
                         if (str < 4 && str >= 0 && clmn < 5 && clmn >= 0 && !(boxes[str][clmn].getState() && boxes[str][clmn].GetCntTimesInBox() > 0)) {
-                            boxes[m][n].AddCntTimesInBoc();
+                            //boxes[m][n].AddCntTimesInBoc();
                             FindCycleLenght(boxes, str, clmn, direction);
-                            boxes[m][n].MinCntTimesInBoc();
+                            //boxes[m][n].MinCntTimesInBoc();
                         }
                     } else {
                         str = m;
@@ -558,7 +586,7 @@ public class Func {
         for (int i = 0; i < u.length; i++) {
             for (int j = 0; j < v.length; j++) {
                 if (!boxes[i][j].getState()) {
-                    boxes[i][j].SetDelta(boxes[i][j].GetPrice() - (v[j] - u[i]));
+                    boxes[i][j].SetDelta(boxes[i][j].GetPrice() - (v[j] + u[i]));
                 }
             }
         }
