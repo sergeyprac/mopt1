@@ -13,12 +13,12 @@ public class Box {
         this.price = price;
     }
 
-    public void setSign(int x) {
-        signOfBox = x;
-    }
 
     public void AddCntTimesInBoc() {
         cntTimesInBox++;
+    }
+    public void setSign(int x) {
+        signOfBox = x;
     }
     public void MinCntTimesInBoc() {
         cntTimesInBox--;
